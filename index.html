@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Counter </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <h1>LeaderBoard Counter</h1>
+
+    <div class="container">
+        <div class="counter">
+            <h2>Counter</h2>
+            <input type="text" placeholder="username" class="name">
+            <div class="count">
+                <button class="minus">-</button>
+                <span class="number">0</span>
+                <button class="plus">+</button>
+            </div>
+            <button class="submit">Submit</button>
+        </div>
+        <div class="leaderboard">
+            <h2>Leaderboard</h2>
+            <div class="head">
+                <span class="sno">Rank</span>
+                <span class="name">Name</span>
+                <span class="score">Score</span>
+            </div>
+            <div class="list">
+                
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let count = 0;
+        let name = "";
+        let list = document.querySelector(".list");
+        let number = document.querySelector(".number");
+        let submit = document.querySelector(".submit");
+        let minus = document.querySelector(".minus");
+        let plus = document.querySelector(".plus");
+        let nameSpan = document.querySelector(".name");
+        let scoreSpan = document.querySelector(".score");
+
+        const initial = () => {
+            fetch('https://counter-leaderboard-1610-default-rtdb.firebaseio.com/score.json', {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const dataArr = Object.entries(data);
+                    dataArr.sort((a, b) => b[1].score - a[1].score);
+                    console.log(dataArr);
+                    list.innerHTML = "";
+                    let a =1;
+                    dataArr.forEach((item) => {
+                        list.innerHTML += `<div class="item">
+                            <span class="name">${a}</span>
+                    <span class="name">${item[1].name}</span>
+                    <span class="score">${item[1].score}</span>
+                </div>`;
+                a++;
+                    })
+
+                })
+        }
+
+        initial();
+
+        minus.addEventListener("click", function () {
+            count--;
+            number.innerHTML = count;
+        });
+        plus.addEventListener("click", function () {
+            count++;
+            number.innerHTML = count;
+        });
+        submit.addEventListener("click", function () {
+
+
+            let nameInput = document.querySelector(".name");
+            if(nameInput.value == ""){
+                alert("Please enter your name");
+                return;
+            }
+
+            fetch('https://counter-leaderboard-1610-default-rtdb.firebaseio.com/score.json', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: nameInput.value,
+                    score: count
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json());
+
+            setTimeout(() => {
+                fetch('https://counter-leaderboard-1610-default-rtdb.firebaseio.com/score.json', {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const dataArr = Object.entries(data);
+                        dataArr.sort((a, b) => b[1].score - a[1].score);
+                        console.log(dataArr);
+                        list.innerHTML = "";
+                        dataArr.forEach((item) => {
+                            list.innerHTML += `<div class="item">
+                    <span class="name">${item[1].name}</span>
+                    <span class="score">${item[1].score}</span>
+                </div>`;
+                        })
+
+                    })
+            }, 1000);
+
+            nameInput.value = "";
+            count = 0;
+            number.innerHTML = count;
+        });
+    </script>
+</body>
+
+</html>
